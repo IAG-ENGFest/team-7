@@ -1,18 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cyberpunk Fireworks</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <div class="canvas-wrapper">
-        <canvas id="fireworksCanvas" width="1280" height="720"></canvas>
-      </div>
-      <button id="fireworksBtn">Launch Fireworks</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airport Logistics Tycoon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Tutorial Overlay -->
+    <div id="tutorial" class="overlay">
+        <div class="modal">
+            <h2>Welcome to Airport Logistics Tycoon! ✈️</h2>
+            <div class="tutorial-content">
+                <p><strong>Objective:</strong> Manage your airport, schedule flights, and maximize revenue!</p>
+                
+                <p><strong>💰 Money & Costs:</strong></p>
+                <ul>
+                    <li>✅ <strong>EARN MONEY:</strong> Complete flights successfully ($8K-$30K each)</li>
+                    <li>✅ Better gate matches = More revenue!</li>
+                    <li>❌ <strong>COSTS MONEY:</strong> Daily operations ($3K every 3 minutes)</li>
+                    <li>❌ <strong>COSTS MONEY:</strong> Buying upgrades (terminals, runways, etc.)</li>
+                    <li>✨ Assigning flights to gates is FREE!</li>
+                </ul>
+                
+                <p><strong>💀 GAME OVER Conditions:</strong></p>
+                <ul>
+                    <li>🚫 <strong>BANKRUPTCY:</strong> Cash drops below -$50,000</li>
+                    <li>🚫 <strong>REPUTATION LOSS:</strong> Reputation reaches 0</li>
+                    <li>⚠️ You lose reputation by letting flights wait too long or failing emergencies</li>
+                    <li>⚠️ Keep satisfaction above 50% to avoid reputation loss!</li>
+                </ul>
+                
+                <p><strong>🎮 How to Play:</strong></p>
+                <ul>
+                    <li>🎯 Drag flights from the queue to available gates</li>
+                    <li>💰 Earn money from successful flights</li>
+                    <li>😊 Keep passenger satisfaction high</li>
+                    <li>⚠️ Handle emergencies and weather delays</li>
+                    <li>🏗️ Upgrade terminals and runways as you grow</li>
+                </ul>
+                <p><strong>📖 Tips:</strong></p>
+                <ul>
+                    <li>Match flight size to gate capacity for best results</li>
+                    <li>Starting gates hold 150 passengers - perfect for most domestic flights</li>
+                    <li>Upgrade to medium gates (250) for international flights</li>
+                    <li>Don't leave flights waiting too long - satisfaction drops!</li>
+                    <li>Watch for special events that can boost or hurt your reputation</li>
+                </ul>
+            </div>
+            <button id="startGame" class="btn-primary">Start Playing!</button>
+        </div>
     </div>
-    <script src="script.js"></script>
-  </body>
+
+    <!-- Game Over Overlay -->
+    <div id="gameOver" class="overlay hidden">
+        <div class="modal">
+            <h2>Game Over!</h2>
+            <p id="finalScore"></p>
+            <p id="highScoreMessage"></p>
+            <button id="restartGame" class="btn-primary">Play Again</button>
+        </div>
+    </div>
+
+    <!-- In-Game Help Overlay -->
+    <div id="helpOverlay" class="overlay hidden">
+        <div class="modal help-modal">
+            <h2>Quick Reference Guide 📖</h2>
+            <div class="tutorial-content help-content">
+                <div class="help-section">
+                    <h3>💰 Money System</h3>
+                    <ul>
+                        <li>✅ <strong>Earn:</strong> Complete flights ($8K-$30K)</li>
+                        <li>❌ <strong>Cost:</strong> Daily operations (-$3K/3min)</li>
+                        <li>❌ <strong>Cost:</strong> Upgrades ($35K-$120K)</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h3>💀 Game Over If...</h3>
+                    <ul>
+                        <li>💸 Cash drops below -$50K (bankruptcy)</li>
+                        <li>⭐ Reputation reaches 0</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h3>🎮 Controls</h3>
+                    <ul>
+                        <li>Drag flights to gates (FREE!)</li>
+                        <li>Click upgrade buttons to purchase</li>
+                        <li>Starting gates: 150 capacity</li>
+                        <li>Medium gates: 250 capacity</li>
+                        <li>Large gates: 350 capacity</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h3>💡 Tips</h3>
+                    <ul>
+                        <li>Perfect matches = +20% revenue</li>
+                        <li>Keep satisfaction above 50%</li>
+                        <li>Don't let flights wait too long</li>
+                        <li>Buy VIP Lounge first ($35K)</li>
+                    </ul>
+                </div>
+            </div>
+            <button id="closeHelp" class="btn-primary">Close</button>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div id="gameContainer">
+        <!-- Top Header with Stats -->
+        <header class="game-header">
+            <div class="logo">
+                <h1>✈️ Airport Tycoon</h1>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">💰 Cash:</span>
+                    <span id="cash" class="stat-value">$50,000</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">😊 Satisfaction:</span>
+                    <span id="satisfaction" class="stat-value">100%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⭐ Reputation:</span>
+                    <span id="reputation" class="stat-value">50</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🕐 Day:</span>
+                    <span id="gameDay" class="stat-value">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">✈️ Flights:</span>
+                    <span id="flightsCompleted" class="stat-value">0</span>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="helpBtn" class="btn-control">❓ Help</button>
+                <button id="pauseBtn" class="btn-control">⏸️ Pause</button>
+                <button id="soundBtn" class="btn-control">🔊 Sound</button>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <div class="game-content">
+            <!-- Left Sidebar - Flight Queue -->
+            <aside class="sidebar left-sidebar">
+                <h3>📋 Incoming Flights</h3>
+                <div id="flightQueue" class="flight-queue"></div>
+                <div class="queue-info">
+                    <p>Drag flights to gates to schedule them</p>
+                </div>
+            </aside>
+
+            <!-- Center - Airport Canvas -->
+            <main class="airport-view">
+                <canvas id="airportCanvas"></canvas>
+                <div id="alerts" class="alerts-container"></div>
+            </main>
+
+            <!-- Right Sidebar - Gates & Upgrades -->
+            <aside class="sidebar right-sidebar">
+                <h3>🚪 Gates</h3>
+                <div id="gatesList" class="gates-list"></div>
+                
+                <h3>🏗️ Upgrades</h3>
+                <div id="upgradesList" class="upgrades-list"></div>
+            </aside>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <footer class="status-bar">
+            <div id="statusMessage" class="status-message">Welcome! Assign flights to gates to begin.</div>
+            <div class="weather-info">
+                <span id="weather">☀️ Clear</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/constants.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/entities.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/gameState.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
 </html>
